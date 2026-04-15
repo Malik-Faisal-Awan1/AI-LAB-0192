@@ -1,0 +1,88 @@
+import csv
+from collections import defaultdict
+from collections import counter
+expansion_count = counter()
+graph = defaultdict(list)
+visit_count = counter()
+
+with open("edges.csv", newline="") as f:
+    for u, v, w in csv.reader(f):
+        w = float(w)
+        graph[u].append((v, w))
+
+
+Heuristic={
+    'S':26,
+    'A':22,
+    'C':19,
+    'D':20,
+    'B':21,
+    'E':23,
+    'F':15,
+    'G':12,
+    'H':9,
+    'I':18,
+    'J':10,
+    'K':9,
+    'L':8,
+    'M':7,
+    'N':0,
+}
+def A_star(startingNode, goal,myGraph):
+    cost=0
+    path=[startingNode]
+    
+    visited =[]
+    queue=[cost,path]
+    
+    while queue:
+        index=0
+        minIndex=0
+        while index < len(queue):
+            
+            currentNode = Heuristic[queue[minIndex+1][len(queue[minIndex+1])-1]]+queue[minIndex]
+            nextNode = Heuristic[queue[index+1][len(queue[index+1])-1]]+queue[index]
+            
+            if currentNode > nextNode:
+                minIndex=index
+            index=index+2
+            
+        cost= queue.pop(minIndex)
+        path = queue.pop(minIndex)
+        last_visited=path[-1]
+
+        visit_count[last_visited] += 1   #new
+        
+        if last_visited in visited:
+            continue            #new
+        visited.append(last_visited)
+            
+        if last_visited == goal:
+            path.append(cost)
+            return path
+        
+        
+        for child, edge_cost in myGraph[last_visited]: #new
+            expansion_count[last_visited] += 1      #new
+            newPath = list(path)
+            newPath.append(child)
+            queue.append(cost + edge_cost) #new
+            queue.append(newPath)
+    
+print(A_star('S','J',graph))
+print(A_star('S','M',graph))
+print(A_star('S','L',graph))
+
+#questions solve
+
+print("Nodes visited more than 3 times:")
+for node, cnt in visit_count.items():
+    if cnt > 3:
+        print(node, cnt)
+
+
+# [PUT AT END OF FILE after all A_star(...) calls]
+print("Nodes with expansion score > 2:")
+for node, score in expansion_count.items():
+    if score > 2:
+        print(node, score)
